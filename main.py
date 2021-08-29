@@ -26,7 +26,7 @@ def get_config(guild_id):
 def get_token():
     table = dynamodb.Table('bot')
     response = table.query(
-        KeyConditionExpression=key('id').eq("token"))
+        KeyConditionExpression=Key('id').eq("token"))
     return response["Items"][0]["value"]
 
 TOKEN = get_token()
