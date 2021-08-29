@@ -1,0 +1,24 @@
+#!/bin/bash
+
+cat <<EOF > /startup.sh
+#!/bin/bash
+/bin/python3 -m pip install discord boto3 pyyaml
+curl -O https://raw.githubusercontent.com/dratcliff/discord-bot/main/main.py
+/bin/python3 main.py
+EOF
+
+chmod +x startup.sh
+
+cat <<EOF > /etc/systemd/system/bot.service
+[Unit]
+Description=Discord bot
+
+[Service]
+ExecStart=/startup.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl start bot
+systemctl enable bot
