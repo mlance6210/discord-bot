@@ -96,6 +96,36 @@ async def noshow(ctx, user, event, count):
         await user.send("I couldn't find a valid user for *" + user + "*. Make sure to mention (@) the user you're trying to noshow.")
     await ctx.message.delete()
 
+@bot.command(help="Give your core a name and it will automatically create the role and the Apply and the Core Channels for you.")
+async def createcore(ctx, corename):
+    guild = ctx.guild
+    roles = guild.roles
+    author = ctx.author
+    #print(ctx.author)
+    #Create new role.
+    trialsrole = [x for x in roles if x.name == "--------------❖  CORES  ❖-------------"][0]
+    #print(trialsrole.position)
+    newrole = await guild.create_role(name="Core - " + corename)
+    await author.add_roles(newrole)
+    #print(newrole.name)
+    positions = {
+        newrole: trialsrole.position-1
+    }
+    await guild.edit_role_positions(positions=positions)
+    #Create new channels for core.
+    categories = guild.categories
+    coregroups = [x for x in categories if str.lower(x.name) == "core groups"][0]
+    opencores = [x for x in categories if str.lower(x.name) == "open cores"][0]
+    daedricprincerole = [x for x in roles if x.name == "Daedric Prince"][0]
+    goldensaintsole = [x for x in roles if x.name == "Golden Saints"][0]
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+        newrole: discord.PermissionOverwrite(read_messages=True),
+        daedricprincerole: discord.PermissionOverwrite(read_messages=True),
+        goldensaintsole: discord.PermissionOverwrite(read_messages=True)
+    }
+    await guild.create_text_channel(corename, overwrites=overwrites, category=coregroups)
+    await guild.create_text_channel("Apply " + corename, overwrites=None, category=opencores)
 
 bot.add_listener(on_message)
 bot.run(TOKEN)
