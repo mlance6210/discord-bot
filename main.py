@@ -65,18 +65,21 @@ async def on_message(message):
     elif "bruh" in str.lower(message.content):
         await message.add_reaction('\N{THUMBS UP SIGN}')
 
+def author_role(ctx, guild_config):
+    if "role" in guild_config:
+        role_name = guild_config["role"]
+        role = discord.utils.find(
+                lambda r: r.name == role_name, ctx.message.guild.roles)
+    else:
+        role = None
+    return role
 
 @bot.command(help="Report <user> as a no-show for <event>. <count> is the current number of no-shows for this member.")
 async def noshow(ctx, user, event, count):
     try:
         guild_id = ctx.guild.id
         guild_config = get_config(guild_id)["config"]
-        if "role" in guild_config:
-            role_name = guild_config["role"]
-            role = discord.utils.find(
-                lambda r: r.name == role_name, ctx.message.guild.roles)
-        else:
-            role = None
+        role = author_role(ctx, guild_config)
         if role is not None and role not in ctx.message.author.roles:
             print("Not authorized")
             return
@@ -99,6 +102,12 @@ async def noshow(ctx, user, event, count):
 @bot.command(help="Give your core a name and it will automatically create the role and the Apply and the Core Channels for you.")
 async def createcore(ctx, corename):
     guild = ctx.guild
+    guild_config = get_config(guild.id)["config"]
+    role = author_role(ctx, guild_config)
+    if role is not None and role not in ctx.message.author.roles:
+        print("Not authorized")
+        return
+    
     roles = guild.roles
     author = ctx.author
     #print(ctx.author)
