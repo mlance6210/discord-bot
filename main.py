@@ -88,7 +88,7 @@ async def handle_confirmation_embed(reaction_payload, msg):
     user = bot.get_user(reaction_payload.user_id)
     response_message = host + " hosted an event in " + event_channel + ". Filled: `" + \
         str(filled) + "`. Cleared: `" + str(cleared) + "`."
-    guild = bot.get_guild(guild_id)
+    guild = bot.get_guild(int(guild_id))
     channels = await guild.fetch_channels()
     guild_config = get_config(guild_id)["config"]
     run_log_channel_name = guild_config["run_log_channel"]["name"]
