@@ -8,6 +8,12 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import yaml
 
+sun_emoji = '\U00002600'
+rain_emoji = '\U0001F327'
+check_emoji = '\U00002705'
+x_emoji = '\U0000274C'
+lock_emoji = '\U0001F512'
+
 dynamodb = boto3.resource("dynamodb", "us-east-2")
 
 def get_message(guild_id):
@@ -64,6 +70,45 @@ async def on_message(message):
         return
     elif "bruh" in str.lower(message.content):
         await message.add_reaction('\N{THUMBS UP SIGN}')
+
+async def handle_confirmation_embed(reaction_payload, msg):
+    e = msg.embeds[0]
+    reactions = msg.reactions
+    cleared = False
+    filled = False
+    for reaction in reactions:
+        if reaction.emoji == sun_emoji and reaction.count == 2:
+            filled = True
+        if reaction.emoji == check_emoji and reaction.count == 2:
+            cleared = True
+    host = [x.value for x in e.fields if x.name == "Host"][0]
+    event_channel = [x.value for x in e.fields if x.name == "Event Channel"][0]
+    guild_id = [x.value for x in e.fields if x.name == "Guild ID"][0]
+    print("host", host, "cleared", cleared, "filled", filled, "event", event_channel, "guild id", guild_id)
+    user = bot.get_user(reaction_payload.user_id)
+    response_message = host + " hosted an event in " + event_channel + ". Filled: `" + \
+        str(filled) + "`. Cleared: `" + str(cleared) + "`."
+    guild = bot.get_guild(guild_id)
+    channels = await guild.fetch_channels()
+    guild_config = get_config(guild_id)["config"]
+    run_log_channel_name = guild_config["run_log_channel"]["name"]
+    run_log_channel = [x for x in channels if x.name == run_log_channel_name][0]
+    await run_log_channel.send(response_message)
+
+async def handle_reactions_to_bot_dm(reaction_payload, msg):
+    if msg.embeds is not None and len(msg.embeds) == 1:
+        e = msg.embeds[0]
+        if e.title == "Confirmation" and reaction_payload.emoji.name == lock_emoji:
+            await handle_confirmation_embed(reaction_payload, msg)
+            
+
+async def on_raw_reaction_add(reaction_payload):
+    if reaction_payload.guild_id is None:
+        channel = await bot.fetch_channel(reaction_payload.channel_id)
+        msg = await channel.fetch_message(reaction_payload.message_id)
+        if msg.author == bot.user:
+            await handle_reactions_to_bot_dm(reaction_payload, msg)
+
 
 def author_role(ctx, guild_config):
     if "role" in guild_config:
@@ -124,7 +169,7 @@ async def createcore(ctx, corename):
     #Create new channels for core.
     categories = guild.categories
     coregroups = [x for x in categories if str.lower(x.name) == "core groups"][0]
-    opencores = [x for x in categories if str.lower(x.name) == "open cores"][0]
+    opencores = [x for x in categories if str.lower(x.name) == "open core applications"][0]
     daedricprincerole = [x for x in roles if x.name == "Daedric Prince"][0]
     goldensaintsole = [x for x in roles if x.name == "Golden Saints"][0]
     overwrites = {
@@ -136,5 +181,38 @@ async def createcore(ctx, corename):
     await guild.create_text_channel(corename, overwrites=overwrites, category=coregroups)
     await guild.create_text_channel("Apply " + corename, overwrites=None, category=opencores)
 
-bot.add_listener(on_message)
+@bot.command(help="Create a log entry for a trial led by <raid_lead> listed in <event_channel>")
+async def archive(ctx, raid_lead, event_channel):
+    try:
+        guild_id = ctx.guild.id
+        # guild_config = get_config(guild_id)["config"]
+        # role = author_role(ctx, guild_config)
+        # if role is not None and role not in ctx.message.author.roles:
+        #     print("Not authorized")
+        #     return
+        id = ctx.message.author.id
+        user = bot.get_user(id)
+        info_msg = "React with :sunny: if the raid took place or :cloud_rain: if it was cancelled.\n\nReact with :white_check_mark: if the raid cleared or :x: if it did not.\n\nWhen you are done, react with :lock: to post the log entry."
+        message = raid_lead + " hosted an event in channel " + event_channel + "."
+        embedVar = discord.Embed(title="Confirmation", description="Please verify the following details to log this entry.", color=0x00ff00)
+        embedVar.add_field(name="Host", value=raid_lead, inline=False)
+        embedVar.add_field(name="Event Channel", value=ctx.message.channel_mentions[0].name, inline=False)
+        embedVar.add_field(name="Guild Name", value=ctx.guild, inline=False)
+        embedVar.add_field(name="Guild ID", value=ctx.guild.id, inline=False)
+        embedVar.add_field(name="Instructions", value=info_msg, inline=False)
+        sent_message = await user.send(embed=embedVar)
+        await sent_message.add_reaction(sun_emoji)
+        await sent_message.add_reaction(rain_emoji)
+        await sent_message.add_reaction(check_emoji)
+        await sent_message.add_reaction(x_emoji)
+        await sent_message.add_reaction(lock_emoji)
+
+    except Exception as e:
+        traceback.print_exc(e)
+        user = bot.get_user(ctx.message.author.id)
+        await user.send("I couldn't find a valid user for *" + user + "*. Make sure to mention (@) the user you're trying to noshow.")
+    await ctx.message.delete()
+
+bot.add_listener(on_message)    
+bot.add_listener(on_raw_reaction_add)
 bot.run(TOKEN)
