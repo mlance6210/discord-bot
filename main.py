@@ -10,7 +10,7 @@ from boto3.dynamodb.conditions import Key
 from discord import user
 from discord.ext import commands
 
-logging.basicConfig(filename='bot.log', level=logging.DEBUG,
+logging.basicConfig(filename='bot.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s - %(message)s')
 
 sun_emoji = '\U00002600'
@@ -78,7 +78,7 @@ async def on_message(message):
     if message.author == bot.user or message.content.startswith("moo."):
         return
     elif "bruh" in str.lower(message.content):
-        logging.debug("bruh")
+        logging.info("bruh")
         await message.add_reaction('\N{THUMBS UP SIGN}')
 
 
@@ -95,7 +95,7 @@ async def handle_confirmation_embed(reaction_payload, msg):
     host = [x.value for x in e.fields if x.name == "Host"][0]
     event_channel = [x.value for x in e.fields if x.name == "Event Channel"][0]
     guild_id = [x.value for x in e.fields if x.name == "Guild ID"][0]
-    logging.debug("host", host, "cleared", cleared, "filled", filled,
+    logging.info("host", host, "cleared", cleared, "filled", filled,
           "event", event_channel, "guild id", guild_id)
     user = bot.get_user(reaction_payload.user_id)
     response_message = host + " hosted an event in " + event_channel + ". Filled: `" + \
@@ -171,14 +171,14 @@ async def createcore(ctx, corename):
 
     roles = guild.roles
     author = ctx.author
-    logging.debug(ctx.author.name)
+    logging.info(ctx.author.name)
     # Create new role.
     trialsrole = [x for x in roles if x.name ==
                   "--------------❖  CORES  ❖-------------"][0]
     # print(trialsrole.position)
     newrole = await guild.create_role(name="Core - " + corename)
     await author.add_roles(newrole)
-    logging.debug(newrole.name)
+    logging.info(newrole.name)
     positions = {
         newrole: trialsrole.position-1
     }
