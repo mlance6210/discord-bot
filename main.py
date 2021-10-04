@@ -10,8 +10,7 @@ from boto3.dynamodb.conditions import Key
 from discord import user
 from discord.ext import commands
 
-logging.basicConfig(filename='bot.log',
-                    encoding='utf-8', level=logging.DEBUG,
+logging.basicConfig(filename='bot.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s - %(message)s')
 
 sun_emoji = '\U00002600'
