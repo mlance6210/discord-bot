@@ -120,7 +120,7 @@ async def on_raw_reaction_add(reaction_payload):
     if reaction_payload.guild_id is None:
         channel = await bot.fetch_channel(reaction_payload.channel_id)
         msg = await channel.fetch_message(reaction_payload.message_id)
-        if msg.author == bot.user:
+        if msg.author == bot.user and reaction_payload.user_id != bot.user.id:
             await handle_reactions_to_bot_dm(reaction_payload, msg)
 
 
