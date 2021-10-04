@@ -95,8 +95,6 @@ async def handle_confirmation_embed(reaction_payload, msg):
     host = [x.value for x in e.fields if x.name == "Host"][0]
     event_channel = [x.value for x in e.fields if x.name == "Event Channel"][0]
     guild_id = [x.value for x in e.fields if x.name == "Guild ID"][0]
-    logging.info("host", host, "cleared", cleared, "filled", filled,
-          "event", event_channel, "guild id", guild_id)
     user = bot.get_user(reaction_payload.user_id)
     response_message = host + " hosted an event in " + event_channel + ". Filled: `" + \
         str(filled) + "`. Cleared: `" + str(cleared) + "`."
