@@ -1,12 +1,9 @@
 import logging
-import traceback
 from datetime import datetime
 from string import Template
 
-import boto3
 import discord
-import yaml
-from boto3.dynamodb.conditions import Key
+from bot_db import *
 from discord import user
 from discord.ext import commands
 
@@ -19,29 +16,7 @@ check_emoji = '\U00002705'
 x_emoji = '\U0000274C'
 lock_emoji = '\U0001F512'
 
-dynamodb = boto3.resource("dynamodb", "us-east-2")
-
-
-def get_message(guild_id):
-    table = dynamodb.Table('bot')
-    response = table.query(
-        KeyConditionExpression=Key('id').eq(str(guild_id) + ".msg"))
-    return response["Items"][0]["value"]
-
-
-def get_config(guild_id):
-    table = dynamodb.Table('bot')
-    response = table.query(
-        KeyConditionExpression=Key('id').eq(str(guild_id) + ".yaml"))
-    return yaml.safe_load(response["Items"][0]["value"])
-
-
-def get_token():
-    table = dynamodb.Table('bot')
-    response = table.query(
-        KeyConditionExpression=Key('id').eq("token"))
-    return response["Items"][0]["value"]
-
+env = environment()
 
 TOKEN = get_token()
 
@@ -51,8 +26,13 @@ intents.messages = True
 intents.guilds = True
 
 client = discord.Client(intents=intents)
-bot = commands.Bot(command_prefix="moo.", intents=intents,
-                   activity=discord.Game(name="MoO | moo.help"))
+
+bot_prefix = "moo."
+if env == "local":
+    bot_prefix = "moot."
+
+bot = commands.Bot(command_prefix=bot_prefix, intents=intents,
+                   activity=discord.Game(name="MoO | " + bot_prefix + "help"))
 
 properties = {}
 message_templates = {}
@@ -66,11 +46,6 @@ def format_message(message, arg1, arg2, arg3):
 @client.event
 async def on_ready():
     logging.info("We have logged in as {0.user}".format(client))
-
-
-@bot.command()
-async def hello(ctx):
-    await ctx.send("Hello!")
 
 
 @client.event
@@ -132,7 +107,15 @@ def author_role(ctx, guild_config):
     return role
 
 
-@bot.command(help="Report <user> as a no-show for <event>. <count> is the current number of no-shows for this member.")
+noshow_help = """Report <user> as a no-show for <event>. <count> is the current number of no-shows for this member.
+Notes: 
+- <user> should be a mention, i.e., @user.
+- <event> may not contain spaces and should be a shortened name of the event, e.g., vss. 
+
+This command should be issued from the channel where the user no-showed and the command will be deleted by this bot after logging the no-show and messaging the user."""
+
+
+@bot.command(help=noshow_help)
 async def noshow(ctx, user, event, count):
     try:
         guild_id = ctx.guild.id
@@ -158,7 +141,11 @@ async def noshow(ctx, user, event, count):
     await ctx.message.delete()
 
 
-@bot.command(help="Give your core a name and it will automatically create the role and the Apply and the Core Channels for you.")
+createcore_help = """Give your core a name and it will automatically create the role and the Apply and the Core Channels for you.
+Note: <corename> may not contain spaces. As an example, to create a core named My Core Name Has Spaces you could instead use my-core-name-has-spaces."""
+
+
+@bot.command(help=createcore_help)
 async def createcore(ctx, corename):
     guild = ctx.guild
     guild_config = get_config(guild.id)["config"]
@@ -199,7 +186,11 @@ async def createcore(ctx, corename):
     await guild.create_text_channel("Apply " + corename, overwrites=None, category=opencores)
 
 
-@bot.command(help="Create a log entry for a trial led by <raid_lead> listed in <event_channel>")
+archive_help = """Create a log entry for a trial led by <raid_lead> listed in <event_channel>.
+After issuing this command you will receive a direct message to provide additional information.
+
+Note: <read_lead> should be a mention, i.e., @raid_lead."""
+@bot.command(help=archive_help)
 async def archive(ctx, raid_lead, event_channel):
     try:
         guild_id = ctx.guild.id

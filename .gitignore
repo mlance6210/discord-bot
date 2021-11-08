@@ -132,3 +132,5 @@ dmypy.json
 token.txt
 token_test.txt
 messages/
+
+dynamo/
