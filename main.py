@@ -129,9 +129,8 @@ async def noshow(ctx, user, event, count):
         message = get_message(guild_id)
         message = format_message(message, user, event, count)
         await user.send(message)
-        channels = await ctx.guild.fetch_channels()
-        channel_name = guild_config["channel"]["name"]
-        channel = [x for x in channels if x.name == channel_name][0]
+        channel_id = guild_config["channel"]["id"]
+        channel = ctx.guild.get_channel(channel_id) 
         await channel.send("noshow for <@" + str(id) + "> reported in channel `" + ctx.message.channel.name + "` at " +
                            datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + ". `count: " + str(count) + "`")
     except Exception as e:

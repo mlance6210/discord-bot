@@ -12,7 +12,7 @@ metadata:
     name: "Meow"
 config:
   channel:
-    name: "bot-posts-test"
+    id: 881172868514324540
   run_log_channel:
     name: "bot-posts-test"
 """
