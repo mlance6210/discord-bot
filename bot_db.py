@@ -19,7 +19,7 @@ def dynamodb_client():
                               endpoint_url="http://localhost:8000",
                               aws_secret_access_key="fake", aws_access_key_id="fake")
 
-    return boto3.resource("dynamodb", "us-east-2")
+    return boto3.resource("dynamodb", "us-west-1")
 
 
 dynamodb = dynamodb_client()
