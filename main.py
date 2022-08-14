@@ -56,8 +56,8 @@ async def on_message(message):
         logging.info("bruh")
         await message.add_reaction('\N{THUMBS UP SIGN}')
     elif "blamefey" in str.lower(message.content):
-        logging.info("blamefey")
-        await message.add_reaction('\N{1008169982754037780}')
+        logging.info("bruh")
+        await message.add_reaction('\N{THUMBS UP SIGN}')
 
 
 async def handle_confirmation_embed(reaction_payload, msg):
