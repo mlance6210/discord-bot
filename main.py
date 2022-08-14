@@ -56,7 +56,7 @@ async def on_message(message):
         logging.info("bruh")
         await message.add_reaction('\N{THUMBS UP SIGN}')
     elif "blamefey" in str.lower(message.content):
-        logging.info("bruh")
+        logging.info("blamefey")
         await message.add_reaction('\N{THUMBS UP SIGN}')
 
 
