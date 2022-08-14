@@ -52,10 +52,12 @@ async def on_ready():
 async def on_message(message):
     if message.author == bot.user or message.content.startswith("moo."):
         return
-    elif "blamefey" in str.lower(message.content):
+    elif "bruh" in str.lower(message.content):
         logging.info("bruh")
         await message.add_reaction('\N{THUMBS UP SIGN}')
-
+    elif "blamefey" in str.lower(message.content):
+        logging.info("blamefey")
+        await message.add_reaction('\N{THUMBS UP SIGN}')
 
 async def handle_confirmation_embed(reaction_payload, msg):
     e = msg.embeds[0]
